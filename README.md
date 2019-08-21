@@ -1,0 +1,1 @@
+wpsc-min
