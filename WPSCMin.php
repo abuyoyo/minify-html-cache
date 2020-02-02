@@ -22,32 +22,55 @@
  */
 
 class WPSCMin {
-	private $enabled = FALSE; // Whether Minify is enabled
-	private $changed = FALSE; // Whether value of $enabled has been changed
 
-	// Full path and filename of wp-cache-config.php
-	// (currently set from global var $wp_cache_config_file)
+	/**
+	 * Whether Minify is enabled
+	 */
+	private $enabled = FALSE;
+
+	/**
+	 * Whether value of $enabled has been changed
+	 */
+	private $changed = FALSE;
+
+	/**
+	 * Full path and filename of wp-cache-config.php
+	 * (currently set from global var $wp_cache_config_file)
+	 */
 	private $wp_cache_config_file;
-	// Name of global var (optionally) setting minify_path in wp-cache-config.php
-	// (if doesn't exist, constructor sets minify_path to Super Cache plugin dir)
+
+	/**
+	 * Name of global var (optionally) setting minify_path in wp-cache-config.php
+	 * (if doesn't exist, constructor sets minify_path to Super Cache plugin dir)
+	 */
 	private $config_varname_minify_path = 'cache_minify_path';
 	private $minify_path;
 
-	// Set to TRUE if $wp_cache_not_logged_in is enabled and 
-	// wp_cache_get_cookies_values() returns a non-empty string. 
-	// See wp-cache-phase2.php for "Not caching for known user."
+	/**
+	 * Set to TRUE if $wp_cache_not_logged_in is enabled and 
+	 * wp_cache_get_cookies_values() returns a non-empty string.
+	 * See wp-cache-phase2.php for "Not caching for known user."
+	 * 
+	 */
 	private $skipping_known_user = FALSE;
 
 	private $escapedStrings = array();
 
-	// Name of global config var set in wp-cache-config.php
+	/**
+	 * Name of global config var set in wp-cache-config.php
+	 */
 	public static $config_varname = 'cache_minify';
 	private static $instance;
 
-	// Will run once only, since private and called only by getInstance()
+	/**
+	 * Will run once only, since private and called only by getInstance()
+	 */
 	private function __construct() {
-		// vars from wp-cache-config.php are initialized in global scope, so just 
-		// get initial value of $enabled from there
+
+		/**
+		 * vars from wp-cache-config.php are initialized in global scope, so just
+		 * get initial value of $enabled from there
+		 */
 		if (isset($GLOBALS[self::$config_varname]) and $GLOBALS[self::$config_varname])
 			$this->enabled = TRUE;
 
@@ -58,12 +81,16 @@ class WPSCMin {
 			$this->minify_path = dirname(__FILE__);
 		}
 
-		// Set location of WP Super Cache config file wp-cache-config.php from global var
+		/**
+		 * Set location of WP Super Cache config file wp-cache-config.php from global var
+		 */
 		if (isset($GLOBALS['wp_cache_config_file']) and file_exists($GLOBALS['wp_cache_config_file']))
 			$this->wp_cache_config_file = $GLOBALS['wp_cache_config_file'];
 	}
 
-	// returns object instance of WPSCMin
+	/**
+	 * @return object instance of WPSCMin
+	 */
 	public static function getInstance() {
 		if (empty(self::$instance))
 			self::$instance = new self();
@@ -74,8 +101,10 @@ class WPSCMin {
 		self::getInstance()->skipping_known_user = TRUE;
 	}
 
-	// Given string $html, returns minified version.
-	// Preserves HTML comments appended by WP Super Cache
+	/**
+	 * Given string $html, returns minified version.
+	 * Preserves HTML comments appended by WP Super Cache
+	 */
 	public static function minifyPage($html) {
 /*
 		For versions of WP Super Cache 0.9.9.5 and earlier, uncomment the code
@@ -95,13 +124,18 @@ class WPSCMin {
 */
 	}
 
-	// Minifies string referenced by $html, if $this->enabled is TRUE
+
+	/**
+	 * Minifies string referenced by $html, if $this->enabled is TRUE
+	 */
 	public function minify(& $html) {
 		if (!$this->enabled or $this->skipping_known_user)
 			return;
 
-		// Include Minify components unless they have already been required
-		// (i.e. by another plugin or user mod, or if WordPress were to use it)
+		/**
+		 * Include Minify components unless they have already been required
+		 * (i.e. by another plugin or user mod, or if WordPress were to use it)
+		 */
 		if (!class_exists('Minify_HTML')) {
 			require_once("$this->minify_path/min/lib/Minify/HTML.php");
 			// Add min/lib to include_path for CSS.php to be able to find components
@@ -112,8 +146,10 @@ class WPSCMin {
 			require_once("$this->minify_path/min/lib/JSMinPlus.php");
 		}
 
-		// Protect from minify any fragments escaped by
-		// <!--[minify_skip]-->   protected text  <!--[/minify_skip]-->
+		/**
+		 * Protect from minify any fragments escaped by
+		 * <!--[minify_skip]-->   protected text  <!--[/minify_skip]-->
+		 */
 		$this->escapedStrings = array();
 		$html = preg_replace_callback(
 			'#<\!--\s*\[minify_skip\]\s*-->((?:[^<]|<(?!<\!--\s*\[/minify_skip\]))+?)<\!--\s*\[/minify_skip\]\s*-->#i',
