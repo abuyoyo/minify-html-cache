@@ -82,11 +82,11 @@ class WPSCMin {
 		 * vars from wp-cache-config.php are initialized in global scope, so just
 		 * get initial value of $enabled from there
 		 */
-		if (isset($GLOBALS[self::$config_varname]) and $GLOBALS[self::$config_varname])
+		if ( isset( $GLOBALS[self::$config_varname] ) and $GLOBALS[self::$config_varname] )
 			$this->enabled = TRUE;
 
-		if (isset($GLOBALS[$this->config_varname_minify_path]) and 
-			is_dir($GLOBALS[$this->config_varname_minify_path])) {
+		if ( isset( $GLOBALS[$this->config_varname_minify_path] ) and 
+			is_dir( $GLOBALS[$this->config_varname_minify_path] ) ) {
 			$this->minify_path = $GLOBALS[$this->config_varname_minify_path];
 		} else {
 			$this->minify_path = dirname(__FILE__);
@@ -95,7 +95,7 @@ class WPSCMin {
 		/**
 		 * Set location of WP Super Cache config file wp-cache-config.php from global var
 		 */
-		if (isset($GLOBALS['wp_cache_config_file']) and file_exists($GLOBALS['wp_cache_config_file']))
+		if ( isset( $GLOBALS['wp_cache_config_file'] ) and file_exists( $GLOBALS['wp_cache_config_file'] ) )
 			$this->wp_cache_config_file = $GLOBALS['wp_cache_config_file'];
 	}
 
@@ -105,7 +105,7 @@ class WPSCMin {
 	 * @return object instance of WPSCMin
 	 */
 	public static function getInstance() {
-		if (empty(self::$instance))
+		if ( empty( self::$instance ) )
 			self::$instance = new self();
 		return self::$instance;
 	}
@@ -123,7 +123,7 @@ class WPSCMin {
 	 * @param String $html 
 	 * @return String $html - minified HTML
 	 */
-	public static function minifyPage($html) {
+	public static function minifyPage( $html ) {
 /*
 		For versions of WP Super Cache 0.9.9.5 and earlier, uncomment the code
 		section below, and comment out (or delete) the alternate code section
@@ -135,7 +135,7 @@ class WPSCMin {
 /* 
 		This is the simpler, regex hack-free version for WP Super Cache 0.9.9.6+.
 */
-		self::getInstance()->minify($html);
+		self::getInstance()->minify( $html );
 		return $html;
 /*
 		End alternate versions
@@ -151,22 +151,22 @@ class WPSCMin {
 	 * @param reference string $html
 	 * @return void $html string modified by reference
 	 */
-	public function minify(& $html) {
-		if (!$this->enabled or $this->skipping_known_user)
+	public function minify( & $html ) {
+		if ( ! $this->enabled or $this->skipping_known_user )
 			return;
 
 		/**
 		 * Include Minify components unless they have already been required
 		 * (i.e. by another plugin or user mod, or if WordPress were to use it)
 		 */
-		if (!class_exists('Minify_HTML')) {
-			require_once("$this->minify_path/min/lib/Minify/HTML.php");
+		if ( ! class_exists( 'Minify_HTML' ) ) {
+			require_once $this->minify_path . '/min/lib/Minify/HTML.php';
 			// Add min/lib to include_path for CSS.php to be able to find components
-			ini_set('include_path', ini_get('include_path').":$this->minify_path/min/lib");
-			require_once("$this->minify_path/min/lib/Minify/CSS.php");
-			require_once("$this->minify_path/min/lib/Minify/CSS/Compressor.php");
-			require_once("$this->minify_path/min/lib/Minify/CommentPreserver.php");
-			require_once("$this->minify_path/min/lib/JSMinPlus.php");
+			ini_set( 'include_path', ini_get('include_path') . PATH_SEPARATOR . $this->minify_path . '/min/lib' );
+			require_once $this->minify_path . '/min/lib/Minify/CSS.php';
+			require_once $this->minify_path . '/min/lib/Minify/CSS/Compressor.php';
+			require_once $this->minify_path . '/min/lib/Minify/CommentPreserver.php';
+			require_once $this->minify_path . '/min/lib/JSMinPlus.php';
 		}
 
 		/**
@@ -176,47 +176,55 @@ class WPSCMin {
 		$this->escapedStrings = array();
 		$html = preg_replace_callback(
 			'#<\!--\s*\[minify_skip\]\s*-->((?:[^<]|<(?!<\!--\s*\[/minify_skip\]))+?)<\!--\s*\[/minify_skip\]\s*-->#i',
-			array($this, 'strCapture'), $html);
+			[ $this, 'strCapture' ],
+			$html
+		);
 
-		$html = Minify_HTML::minify($html,
-					array('cssMinifier' => array('Minify_CSS', 'minify'),
-						'jsMinifier' => array('JSMinPlus', 'minify')));
+		$html = Minify_HTML::minify(
+			$html,
+			[
+				'cssMinifier' => [ 'Minify_CSS', 'minify' ],
+				'jsMinifier' => [ 'JSMinPlus', 'minify' ]
+			]
+		);
 
 		// Restore any escaped fragments
-		$html = str_replace(array_keys($this->escapedStrings),
-							$this->escapedStrings, $html);
+		$html = str_replace(
+			array_keys( $this->escapedStrings ),
+			$this->escapedStrings,
+			$html
+		);
 	}
 
-	public function updateOption($value) {
+	public function updateOption( $value ){
 		$enabled = (bool) $value;
-		if ($enabled != $this->enabled) {
+		if ( $enabled != $this->enabled ){
 			$this->enabled = $enabled;
 			$this->changed = TRUE;
-			wp_cache_replace_line('^ *\$'.self::$config_varname, "\$".self::$config_varname." = " . var_export($enabled, TRUE) . ";", $this->wp_cache_config_file);
+			wp_cache_replace_line(
+				'^ *\$'.self::$config_varname,
+				"\$".self::$config_varname ." = " . var_export( $enabled, TRUE ) . ";",
+				$this->wp_cache_config_file
+			);
 		}
 	}
 
-	public function printOptionsForm($action) {
+	public function printOptionsForm( $action ) {
 		$id = 'htmlminify-section';
 		?>
-		<fieldset id="<?php echo $id; ?>" class="options"> 
+		<fieldset id="<?php echo $id; ?>" class="options">
 		<h4>HTML Minify</h4>
 		<form name="wp_manager" action="<?php echo $action.'#'.$id; ?>" method="post">
-			<label><input type="radio" name="<?php echo self::$config_varname; ?>" value="1" <?php if( $this->enabled ) { echo 'checked="checked" '; } ?>/> Enabled</label>
-			<label><input type="radio" name="<?php echo self::$config_varname; ?>" value="0" <?php if( !$this->enabled ) { echo 'checked="checked" '; } ?>/> Disabled</label>
+			<label><input type="radio" name="<?= self::$config_varname ?>" value="1" <?php checked( $this->enabled, true ) ?>/> Enabled</label>
+			<label><input type="radio" name="<?= self::$config_varname ?>" value="0" <?php checked( $this->enabled, false ) ?>/> Disabled</label>
 			<p>Enables or disables <a target="_blank" href="http://code.google.com/p/minify/">Minify</a> (stripping of unnecessary comments and whitespace) of cached HTML output. Disable this if you encounter any problems or need to read your source code.</p>
-		<?php
-		if ($this->changed) {
-			echo "<p><strong>HTML Minify is now ";
-			if ($this->enabled)
-			echo "enabled";
-			else
-			echo "disabled";
-			echo ".</strong></p>";
-		}
-		echo '<div class="submit"><input ' . SUBMITDISABLED . 'class="button-primary" type="submit" value="Update" /></div>';
-		wp_nonce_field('wp-cache');
-		?>
+			<?php if ( $this->changed ): ?>
+			<p><strong>HTML Minify is now <?= ($this->enabled) ? 'enabled' : 'disabled' ?>.</strong></p>
+			<?php endif; ?>
+			<div class="submit">
+				<input <?= SUBMITDISABLED ?> class="button-primary" type="submit" value="Update" />
+			</div>
+			<?php wp_nonce_field( 'wp-cache' ); ?>
 
 		</form>
 		</fieldset>
@@ -229,8 +237,8 @@ class WPSCMin {
 	 * used as callbak by preg_replace_callback()
 	 * in Minify() to capture [minify-skip] tag
 	 */
-	private function strCapture($matches) {
-		$placeholder = 'X_WPSCMin_escaped_string_'.count($this->escapedStrings);
+	private function strCapture( $matches ) {
+		$placeholder = 'X_WPSCMin_escaped_string_' . count( $this->escapedStrings );
 		$this->escapedStrings[$placeholder] = $matches[1];
 		return $placeholder;
 	}
