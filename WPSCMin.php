@@ -92,6 +92,8 @@ class WPSCMin {
 			$this->minify_path = dirname(__FILE__);
 		}
 
+		$this->minify_path .= '/min/lib';
+
 		/**
 		 * Set location of WP Super Cache config file wp-cache-config.php from global var
 		 */
@@ -146,13 +148,13 @@ class WPSCMin {
 		 * (i.e. by another plugin or user mod, or if WordPress were to use it)
 		 */
 		if ( ! class_exists( 'Minify_HTML' ) ) {
-			require_once $this->minify_path . '/min/lib/Minify/HTML.php';
+			require_once $this->minify_path . '/Minify/HTML.php';
 			// Add min/lib to include_path for CSS.php to be able to find components
-			ini_set( 'include_path', ini_get('include_path') . PATH_SEPARATOR . $this->minify_path . '/min/lib' );
-			require_once $this->minify_path . '/min/lib/Minify/CSS.php';
-			require_once $this->minify_path . '/min/lib/Minify/CSS/Compressor.php';
-			require_once $this->minify_path . '/min/lib/Minify/CommentPreserver.php';
-			require_once $this->minify_path . '/min/lib/JSMinPlus.php';
+			ini_set( 'include_path', ini_get('include_path') . PATH_SEPARATOR . $this->minify_path );
+			require_once $this->minify_path . '/Minify/CSS.php';
+			require_once $this->minify_path . '/Minify/CSS/Compressor.php';
+			require_once $this->minify_path . '/Minify/CommentPreserver.php';
+			require_once $this->minify_path . '/JSMinPlus.php';
 		}
 
 		/**
