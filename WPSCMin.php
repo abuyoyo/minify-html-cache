@@ -44,6 +44,10 @@ class WPSCMin {
 	 * (if doesn't exist, constructor sets minify_path to Super Cache plugin dir)
 	 */
 	private $config_varname_minify_path = 'cache_minify_path';
+
+	/**
+	 * Path to Minify lib/ folder to include/load
+	 */
 	private $minify_path;
 
 	/**
@@ -54,12 +58,19 @@ class WPSCMin {
 	 */
 	private $skipping_known_user = FALSE;
 
+	/**
+	 * Array for holding escaped (non-modified) strings
+	 */
 	private $escapedStrings = array();
 
 	/**
 	 * Name of global config var set in wp-cache-config.php
 	 */
 	public static $config_varname = 'cache_minify';
+
+	/**
+	 * Static instance
+	 */
 	private static $instance;
 
 	/**
@@ -89,6 +100,8 @@ class WPSCMin {
 	}
 
 	/**
+	 * getInstance
+	 * 
 	 * @return object instance of WPSCMin
 	 */
 	public static function getInstance() {
@@ -102,8 +115,13 @@ class WPSCMin {
 	}
 
 	/**
+	 * minifyPage
+	 * 
 	 * Given string $html, returns minified version.
 	 * Preserves HTML comments appended by WP Super Cache
+	 * 
+	 * @param String $html 
+	 * @return String $html - minified HTML
 	 */
 	public static function minifyPage($html) {
 /*
@@ -126,7 +144,12 @@ class WPSCMin {
 
 
 	/**
+	 * minify
+	 * 
 	 * Minifies string referenced by $html, if $this->enabled is TRUE
+	 * 
+	 * @param reference string $html
+	 * @return void $html string modified by reference
 	 */
 	public function minify(& $html) {
 		if (!$this->enabled or $this->skipping_known_user)
@@ -200,6 +223,12 @@ class WPSCMin {
 		<?php
 	}
 
+	/**
+	 * strCapture
+	 * 
+	 * used as callbak by preg_replace_callback()
+	 * in Minify() to capture [minify-skip] tag
+	 */
 	private function strCapture($matches) {
 		$placeholder = 'X_WPSCMin_escaped_string_'.count($this->escapedStrings);
 		$this->escapedStrings[$placeholder] = $matches[1];
