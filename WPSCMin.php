@@ -124,22 +124,8 @@ class WPSCMin {
 	 * @return String $html - minified HTML
 	 */
 	public static function minifyPage( $html ) {
-/*
-		For versions of WP Super Cache 0.9.9.5 and earlier, uncomment the code
-		section below, and comment out (or delete) the alternate code section
-		for versions 0.9.9.6+.
-*/
-		// $parts = preg_split('/\s*(<\!-- Dynamic page generated in [^->]+-->)\s*/', $html, 2, PREG_SPLIT_DELIM_CAPTURE);
-		// self::getInstance()->minify($parts[0]);
-		// return implode("\n", $parts);
-/* 
-		This is the simpler, regex hack-free version for WP Super Cache 0.9.9.6+.
-*/
 		self::getInstance()->minify( $html );
 		return $html;
-/*
-		End alternate versions
-*/
 	}
 
 
