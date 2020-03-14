@@ -140,6 +140,17 @@ class WPSCMin {
 		if ( ! $this->loaded_minify )
 			return;
 
+		
+		/**
+		 * Add min/lib to include_path for CSS.php to be able to find components
+		 * 
+		 * @todo this only needs to run when doing minify
+		 */
+		if ( class_exists('Minify_CSS') ){
+			$minify_path = dirname( ( new ReflectionClass('Minify_CSS') )->getFileName() );
+			ini_set( 'include_path', ini_get( 'include_path' ) . PATH_SEPARATOR . $minify_path );
+		}
+
 		/**
 		 * Protect from minify any fragments escaped by
 		 * <!--[minify_skip]-->   protected text  <!--[/minify_skip]-->
