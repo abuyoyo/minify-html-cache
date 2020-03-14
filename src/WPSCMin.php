@@ -152,6 +152,15 @@ class WPSCMin {
 		}
 
 		/**
+		 * Minify ~3.0 uses a different JS minifier than Minify ~2.3
+		 */
+		if ( class_exists( 'Minify\\JS\\JShrink' ) ){ // Minify ~3.0
+			$this->js_minifier = 'Minify\\JS\\JShrink';
+		}else if ( class_exists( 'JSMinPlus' ) ){ // Minify ~2.3
+			$this->js_minifier = 'JSMinPlus';
+		}
+
+		/**
 		 * Protect from minify any fragments escaped by
 		 * <!--[minify_skip]-->   protected text  <!--[/minify_skip]-->
 		 */
