@@ -220,19 +220,22 @@ class WPSCMin {
 		?>
 		<fieldset id="<?php echo $id; ?>" class="options">
 		<h4>HTML Minify</h4>
-		<form name="wp_manager" action="<?php echo $action.'#'.$id; ?>" method="post">
-			<label><input type="radio" name="<?= self::$config_varname ?>" value="1" <?php checked( $this->enabled, true ) ?>/> Enabled</label>
-			<label><input type="radio" name="<?= self::$config_varname ?>" value="0" <?php checked( $this->enabled, false ) ?>/> Disabled</label>
-			<p>Enables or disables <a target="_blank" href="http://code.google.com/p/minify/">Minify</a> (stripping of unnecessary comments and whitespace) of cached HTML output. Disable this if you encounter any problems or need to read your source code.</p>
-			<?php if ( $this->changed ): ?>
-			<p><strong>HTML Minify is now <?= ($this->enabled) ? 'enabled' : 'disabled' ?>.</strong></p>
-			<?php endif; ?>
-			<div class="submit">
-				<input <?= SUBMITDISABLED ?> class="button-primary" type="submit" value="Update" />
-			</div>
-			<?php wp_nonce_field( 'wp-cache' ); ?>
-
-		</form>
+		<?php if ( ! $this->lib_loaded ): ?>
+			<p><strong>Minify library components could not be loaded. Minify HTML will not work. Please set $<?=$this->config_varname_minify_path?> variable in <?=$this->wp_cache_config_file?> to point to Minify library directory. Or autoload mrclay/minify v2.3 via Composer.</strong></p>
+		<?php else: ?>
+			<form name="wp_manager" action="<?php echo $action.'#'.$id; ?>" method="post">
+				<label><input type="radio" name="<?= self::$config_varname ?>" value="1" <?php checked( $this->enabled, true ) ?>/> Enabled</label>
+				<label><input type="radio" name="<?= self::$config_varname ?>" value="0" <?php checked( $this->enabled, false ) ?>/> Disabled</label>
+				<p>Enables or disables <a target="_blank" href="http://code.google.com/p/minify/">Minify</a> (stripping of unnecessary comments and whitespace) of cached HTML output. Disable this if you encounter any problems or need to read your source code.</p>
+				<?php if ( $this->changed ): ?>
+				<p><strong>HTML Minify is now <?= ($this->enabled) ? 'enabled' : 'disabled' ?>.</strong></p>
+				<?php endif; ?>
+				<div class="submit">
+					<input <?= SUBMITDISABLED ?> class="button-primary" type="submit" value="Update" />
+				</div>
+				<?php wp_nonce_field( 'wp-cache' ); ?>
+			</form>
+		<?php endif; ?>
 		</fieldset>
 		<?php
 	}
