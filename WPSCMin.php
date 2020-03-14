@@ -233,6 +233,8 @@ class WPSCMin {
 }
 
 
+if ( function_exists('add_cacheaction') ):
+
 /* function WPSCMin_settings
  *
  * Inserts an "on/off switch" for HTML Minify into the WP Super Cache
@@ -294,4 +296,4 @@ function WPSCMin_check_known_user($string) {
 
 add_cacheaction('wp_cache_get_cookies_values', 'WPSCMin_check_known_user');
 
-?>
+endif;
