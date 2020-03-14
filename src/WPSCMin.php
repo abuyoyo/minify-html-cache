@@ -90,6 +90,21 @@ class WPSCMin {
 		 */
 		if ( isset( $GLOBALS['wp_cache_config_file'] ) and file_exists( $GLOBALS['wp_cache_config_file'] ) )
 			$this->wp_cache_config_file = $GLOBALS['wp_cache_config_file'];
+
+		/**
+		 * Minify library loaded
+		 */
+		if ( class_exists( 'Minify_HTML' ) ){
+			$this->loaded_minify = true;
+		}
+
+		/**
+		 * library loaded
+		 */
+		$this->lib_loaded = ( $this->loaded_minify );
+
+		if ( ! $this->lib_loaded )
+			$this->enabled = false;
 	}
 
 	/**
