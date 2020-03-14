@@ -1,0 +1,9 @@
+{
+	"name": "minify-html-cache",
+	"type": "wordpress-plugin",
+	"description": "HTML minifier add-on to WP Super Cache and WP-Optimize cache plugins.",
+	"license": "GPL-2",
+	"require": {
+		"mrclay/minify": "~2.3"
+	}
+}
