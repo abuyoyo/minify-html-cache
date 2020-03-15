@@ -28,3 +28,4 @@ include_once 'src/plugins/wp-super-cache/WPSuperCacheStatic.php';
 include_once 'src/plugins/wp-optimize/wp-optimize.php';
 
 include_once 'src/minifiers/MinifierInterface.php';
+include_once 'src/minifiers/Minify.php';

@@ -19,11 +19,6 @@ class WPSCMin {
 	private $loaded_minify = false;
 
 	/**
-	 * Array for holding escaped (non-modified) strings
-	 */
-	private $escapedStrings = array();
-
-	/**
 	 * Static instance
 	 */
 	private static $instance;
@@ -70,6 +65,7 @@ class WPSCMin {
 	/**
 	 * minify_page
 	 * 
+	 * static WPSCMin::minify_page() function
 	 * Given string $html, returns minified version.
 	 * Preserves HTML comments appended by WP Super Cache
 	 * 
@@ -77,82 +73,42 @@ class WPSCMin {
 	 * @return String $html - minified HTML
 	 */
 	public static function minify_page( $html ) {
-		self::instance()->minify( $html );
+		
+		/**
+		 * If loading of Minify library failed - exit
+		 */
+		if ( ! self::instance()->lib_loaded )
+			return $html;
+
+		/**
+		 * set minifier instance
+		 */
+		if ( self::instance()->loaded_minify ){
+			self::instance()->minifier = new WPSCMin\Minifier\Minify();
+		}
+
+		/**
+		 * Run non-static minify function (html sent by reference)
+		 */
+		self::instance()->minifier->minify( $html );
 		return $html;
 	}
 
 	/**
 	 * minify
 	 * 
-	 * Minifies string referenced by $html, if $this->enabled is TRUE
+	 * Given string $html, returns minified version.
 	 * 
-	 * @param reference string $html
-	 * @return void $html string modified by reference
+	 * @param String $html
+	 * @return Void $html is minified by reference
 	 */
-	public function minify( & $html ) {
+	public function minify( & $html ){
 
 		/**
-		 * If loading of Minify library failed - exit
+		 * $html passed by reference(!)
+		 * dunno why? - probably because of how original WPSCMin mrclay/Minify was implemented
 		 */
-		if ( ! $this->loaded_minify )
-			return;
-
-		
-		/**
-		 * Add min/lib to include_path for CSS.php to be able to find components
-		 * 
-		 * @todo this only needs to run when doing minify
-		 */
-		if ( class_exists('Minify_CSS') ){
-			$minify_path = dirname( ( new ReflectionClass('Minify_CSS') )->getFileName() );
-			ini_set( 'include_path', ini_get( 'include_path' ) . PATH_SEPARATOR . $minify_path );
-		}
-
-		/**
-		 * Minify ~3.0 uses a different JS minifier than Minify ~2.3
-		 */
-		if ( class_exists( 'Minify\\JS\\JShrink' ) ){ // Minify ~3.0
-			$this->js_minifier = 'Minify\\JS\\JShrink';
-		}else if ( class_exists( 'JSMinPlus' ) ){ // Minify ~2.3
-			$this->js_minifier = 'JSMinPlus';
-		}
-
-		/**
-		 * Protect from minify any fragments escaped by
-		 * <!--[minify_skip]-->   protected text  <!--[/minify_skip]-->
-		 */
-		$this->escapedStrings = array();
-		$html = preg_replace_callback(
-			'#<\!--\s*\[minify_skip\]\s*-->((?:[^<]|<(?!<\!--\s*\[/minify_skip\]))+?)<\!--\s*\[/minify_skip\]\s*-->#i',
-			[ $this, 'minify_skip_capture' ],
-			$html
-		);
-
-		$html = Minify_HTML::minify(
-			$html,
-			[
-				'cssMinifier' => [ 'Minify_CSS', 'minify' ],
-				'jsMinifier' => [ 'JSMinPlus', 'minify' ]
-			]
-		);
-
-		// Restore any escaped fragments
-		$html = str_replace(
-			array_keys( $this->escapedStrings ),
-			$this->escapedStrings,
-			$html
-		);
+		$this->minifier->minify( $html );
 	}
 
-	/**
-	 * minify_skip_capture
-	 * 
-	 * used as callbak by preg_replace_callback()
-	 * in Minify() to capture [minify-skip] tag
-	 */
-	private function minify_skip_capture( $matches ) {
-		$placeholder = 'X_WPSCMin_escaped_string_' . count( $this->escapedStrings );
-		$this->escapedStrings[$placeholder] = $matches[1];
-		return $placeholder;
-	}
 }
