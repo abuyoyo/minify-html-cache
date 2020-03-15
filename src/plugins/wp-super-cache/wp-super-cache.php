@@ -20,11 +20,11 @@ if ( function_exists('add_cacheaction') ):
 
 function wpscmin_settings() {
 	// Update option if it has been changed
-	if (isset($_POST[WPSCMin::$config_varname]))
-		WPSCMin::instance()->update_option($_POST[WPSCMin::$config_varname]);
+	if (isset($_POST[WPSuperCacheStatic::$config_varname]))
+		WPSuperCacheStatic::instance()->update_option($_POST[WPSuperCacheStatic::$config_varname]);
 
 	// Print HTML Minify configuration section
-	WPSCMin::instance()->print_options_form($_SERVER['REQUEST_URI']);
+	WPSuperCacheStatic::instance()->print_options_form($_SERVER['REQUEST_URI']);
 }
 
 add_cacheaction('cache_admin_page', 'wpscmin_settings');
@@ -40,6 +40,9 @@ add_cacheaction('cache_admin_page', 'wpscmin_settings');
 	*/
 
 function wpscmin_minify() {
+	if ( ! WPSuperCacheStatic::is_enabled() or WPSuperCacheStatic::is_skipping_known_user() )
+		return;
+
 	add_filter('wpsupercache_buffer', array('WPSCMin', 'minify_page'));
 }
 
@@ -60,7 +63,7 @@ function wpscmin_check_known_user($string) {
 	if ($GLOBALS['wp_cache_not_logged_in'] and $string != '') {
 		// Detected known user per logic in wp-cache-phase2.php 
 		// (see line 378 in WP Super Cache 0.9.9.8)
-		WPSCMin::skip_known_user();
+		WPSuperCacheStatic::skip_known_user();
 	}
 	return $string;
 }
