@@ -46,9 +46,9 @@ class WPSCMin {
 	private $config_varname_minify_path = 'cache_minify_path';
 
 	/**
-	 * Path to Minify lib/ folder to include/load
+	 * Whether Minify library has been loaded
 	 */
-	private $minify_path;
+	private $loaded_minify = false;
 
 	/**
 	 * Set to TRUE if $wp_cache_not_logged_in is enabled and 
@@ -84,15 +84,6 @@ class WPSCMin {
 		 */
 		if ( isset( $GLOBALS[self::$config_varname] ) and $GLOBALS[self::$config_varname] )
 			$this->enabled = TRUE;
-
-		if ( isset( $GLOBALS[$this->config_varname_minify_path] ) and 
-			is_dir( $GLOBALS[$this->config_varname_minify_path] ) ) {
-			$this->minify_path = $GLOBALS[$this->config_varname_minify_path];
-		} else {
-			$this->minify_path = dirname(__FILE__);
-		}
-
-		$this->minify_path .= '/min/lib';
 
 		/**
 		 * Set location of WP Super Cache config file wp-cache-config.php from global var
@@ -144,18 +135,10 @@ class WPSCMin {
 			return;
 
 		/**
-		 * Include Minify components unless they have already been required
-		 * (i.e. by another plugin or user mod, or if WordPress were to use it)
+		 * If loading of Minify library failed - exit
 		 */
-		if ( ! class_exists( 'Minify_HTML' ) ) {
-			require_once $this->minify_path . '/Minify/HTML.php';
-			// Add min/lib to include_path for CSS.php to be able to find components
-			ini_set( 'include_path', ini_get('include_path') . PATH_SEPARATOR . $this->minify_path );
-			require_once $this->minify_path . '/Minify/CSS.php';
-			require_once $this->minify_path . '/Minify/CSS/Compressor.php';
-			require_once $this->minify_path . '/Minify/CommentPreserver.php';
-			require_once $this->minify_path . '/JSMinPlus.php';
-		}
+		if ( ! $this->loaded_minify )
+			return;
 
 		/**
 		 * Protect from minify any fragments escaped by
