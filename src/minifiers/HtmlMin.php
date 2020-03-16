@@ -6,6 +6,8 @@
  */
 namespace WPSCMin\Minifier;
 
+use PreserveCanonical;
+
 class HtmlMin implements MinifierInterface
 {
 	/**
@@ -18,6 +20,8 @@ class HtmlMin implements MinifierInterface
 		$htmlMin->doRemoveHttpPrefixFromAttributes();
 		$htmlMin->doRemoveHttpsPrefixFromAttributes();
 		$htmlMin->doMakeSameDomainsLinksRelative( [ $_SERVER['SERVER_NAME'] ] );
+
+		$htmlMin->attachObserverToTheDomLoop(new PreserveCanonical);
 
 		$html = $htmlMin->minify($html);
 	
