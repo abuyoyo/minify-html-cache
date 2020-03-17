@@ -22,3 +22,6 @@ new PluginCore(
 );
 
 require_once 'src/WPSCMin.php';
+
+include_once 'src/plugins/wp-super-cache/wp-super-cache.php';
+include_once 'src/plugins/wp-super-cache/WPSuperCacheStatic.php';
