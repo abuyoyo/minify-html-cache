@@ -46,9 +46,9 @@ class WPSCMin {
 	private $config_varname_minify_path = 'cache_minify_path';
 
 	/**
-	 * Path to Minify lib/ folder to include/load
+	 * Whether Minify library has been loaded
 	 */
-	private $minify_path;
+	private $loaded_minify = false;
 
 	/**
 	 * Set to TRUE if $wp_cache_not_logged_in is enabled and 
@@ -85,20 +85,26 @@ class WPSCMin {
 		if ( isset( $GLOBALS[self::$config_varname] ) and $GLOBALS[self::$config_varname] )
 			$this->enabled = TRUE;
 
-		if ( isset( $GLOBALS[$this->config_varname_minify_path] ) and 
-			is_dir( $GLOBALS[$this->config_varname_minify_path] ) ) {
-			$this->minify_path = $GLOBALS[$this->config_varname_minify_path];
-		} else {
-			$this->minify_path = dirname(__FILE__);
-		}
-
-		$this->minify_path .= '/min/lib';
-
 		/**
 		 * Set location of WP Super Cache config file wp-cache-config.php from global var
 		 */
 		if ( isset( $GLOBALS['wp_cache_config_file'] ) and file_exists( $GLOBALS['wp_cache_config_file'] ) )
 			$this->wp_cache_config_file = $GLOBALS['wp_cache_config_file'];
+
+		/**
+		 * Minify library loaded
+		 */
+		if ( class_exists( 'Minify_HTML' ) ){
+			$this->loaded_minify = true;
+		}
+
+		/**
+		 * library loaded
+		 */
+		$this->lib_loaded = ( $this->loaded_minify );
+
+		if ( ! $this->lib_loaded )
+			$this->enabled = false;
 	}
 
 	/**
@@ -144,17 +150,29 @@ class WPSCMin {
 			return;
 
 		/**
-		 * Include Minify components unless they have already been required
-		 * (i.e. by another plugin or user mod, or if WordPress were to use it)
+		 * If loading of Minify library failed - exit
 		 */
-		if ( ! class_exists( 'Minify_HTML' ) ) {
-			require_once $this->minify_path . '/Minify/HTML.php';
-			// Add min/lib to include_path for CSS.php to be able to find components
-			ini_set( 'include_path', ini_get('include_path') . PATH_SEPARATOR . $this->minify_path );
-			require_once $this->minify_path . '/Minify/CSS.php';
-			require_once $this->minify_path . '/Minify/CSS/Compressor.php';
-			require_once $this->minify_path . '/Minify/CommentPreserver.php';
-			require_once $this->minify_path . '/JSMinPlus.php';
+		if ( ! $this->loaded_minify )
+			return;
+
+		
+		/**
+		 * Add min/lib to include_path for CSS.php to be able to find components
+		 * 
+		 * @todo this only needs to run when doing minify
+		 */
+		if ( class_exists('Minify_CSS') ){
+			$minify_path = dirname( ( new ReflectionClass('Minify_CSS') )->getFileName() );
+			ini_set( 'include_path', ini_get( 'include_path' ) . PATH_SEPARATOR . $minify_path );
+		}
+
+		/**
+		 * Minify ~3.0 uses a different JS minifier than Minify ~2.3
+		 */
+		if ( class_exists( 'Minify\\JS\\JShrink' ) ){ // Minify ~3.0
+			$this->js_minifier = 'Minify\\JS\\JShrink';
+		}else if ( class_exists( 'JSMinPlus' ) ){ // Minify ~2.3
+			$this->js_minifier = 'JSMinPlus';
 		}
 
 		/**
@@ -202,19 +220,22 @@ class WPSCMin {
 		?>
 		<fieldset id="<?php echo $id; ?>" class="options">
 		<h4>HTML Minify</h4>
-		<form name="wp_manager" action="<?php echo $action.'#'.$id; ?>" method="post">
-			<label><input type="radio" name="<?= self::$config_varname ?>" value="1" <?php checked( $this->enabled, true ) ?>/> Enabled</label>
-			<label><input type="radio" name="<?= self::$config_varname ?>" value="0" <?php checked( $this->enabled, false ) ?>/> Disabled</label>
-			<p>Enables or disables <a target="_blank" href="http://code.google.com/p/minify/">Minify</a> (stripping of unnecessary comments and whitespace) of cached HTML output. Disable this if you encounter any problems or need to read your source code.</p>
-			<?php if ( $this->changed ): ?>
-			<p><strong>HTML Minify is now <?= ($this->enabled) ? 'enabled' : 'disabled' ?>.</strong></p>
-			<?php endif; ?>
-			<div class="submit">
-				<input <?= SUBMITDISABLED ?> class="button-primary" type="submit" value="Update" />
-			</div>
-			<?php wp_nonce_field( 'wp-cache' ); ?>
-
-		</form>
+		<?php if ( ! $this->lib_loaded ): ?>
+			<p><strong>Minify library components could not be loaded. Minify HTML will not work. Please set $<?=$this->config_varname_minify_path?> variable in <?=$this->wp_cache_config_file?> to point to Minify library directory. Or autoload mrclay/minify v2.3 via Composer.</strong></p>
+		<?php else: ?>
+			<form name="wp_manager" action="<?php echo $action.'#'.$id; ?>" method="post">
+				<label><input type="radio" name="<?= self::$config_varname ?>" value="1" <?php checked( $this->enabled, true ) ?>/> Enabled</label>
+				<label><input type="radio" name="<?= self::$config_varname ?>" value="0" <?php checked( $this->enabled, false ) ?>/> Disabled</label>
+				<p>Enables or disables <a target="_blank" href="http://code.google.com/p/minify/">Minify</a> (stripping of unnecessary comments and whitespace) of cached HTML output. Disable this if you encounter any problems or need to read your source code.</p>
+				<?php if ( $this->changed ): ?>
+				<p><strong>HTML Minify is now <?= ($this->enabled) ? 'enabled' : 'disabled' ?>.</strong></p>
+				<?php endif; ?>
+				<div class="submit">
+					<input <?= SUBMITDISABLED ?> class="button-primary" type="submit" value="Update" />
+				</div>
+				<?php wp_nonce_field( 'wp-cache' ); ?>
+			</form>
+		<?php endif; ?>
 		</fieldset>
 		<?php
 	}
