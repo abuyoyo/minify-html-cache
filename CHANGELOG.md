@@ -1,4 +1,22 @@
-# WPSCMin changelog
+# Minify HTML Cache
+
+All notable changes to Minify HTML Cache plugin and original [WSCMin](http://lyncd.com/wpscmin) plugin.
+
+The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
+and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
+
+## [1.0](https://github.com/abuyoyo/minify-html-cache/releases/tag/1.0/) - Initial Release
+Release Date: Apr 20, 2020
+
+* Major refactoring of WSCMin.
+* Minify HTML Cache is installable as a regular WordPress plugin.
+* Plugin works with WP-Optimize cache plugin (as well as WP-Super-Cache plugin).
+* Use composer autoload to load minifier libraries.
+* Add `voku/HtmlMin` minifier library and use as default.
+
+---
+
+## WPSCMin changelog
 
 ## 0.7
 Release Date: 2015-09-28

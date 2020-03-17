@@ -5,6 +5,8 @@
  * Author: abuyoyo
  * Author URI: https://github.com/abuyoyo
  * Plugin URI: https://github.com/abuyoyo/minify-html-cache
+ * Version: 1.0
+ * Release Date: 2020_04_20
  * License: GPL-2
  */
 if ( ! defined( 'ABSPATH' ) ) 
