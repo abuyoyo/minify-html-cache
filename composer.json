@@ -6,6 +6,7 @@
 	"require": {
 		"abuyoyo/plugincore": "~0.10",
 
-		"mrclay/minify": "~2.3"
+		"mrclay/minify": "~2.3",
+		"voku/html-min": "~4.2"
 	}
 }

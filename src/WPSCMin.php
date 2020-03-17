@@ -19,6 +19,11 @@ class WPSCMin {
 	private $loaded_minify = false;
 
 	/**
+	 * Whether HtmlMin library has been loaded
+	 */
+	protected $loaded_html_min = false;
+
+	/**
 	 * Static instance
 	 */
 	private static $instance;
@@ -31,14 +36,20 @@ class WPSCMin {
 		/**
 		 * Minify library loaded
 		 */
-		if ( class_exists( 'Minify_HTML' ) ){
+		if ( class_exists( 'voku\helper\HtmlMin' ) ){
+			$this->loaded_html_min = true;
+		}else if ( class_exists( 'Minify_HTML' ) ){
 			$this->loaded_minify = true;
 		}
 
 		/**
 		 * library loaded
 		 */
-		$this->lib_loaded = ( $this->loaded_minify );
+		$this->lib_loaded = (
+			$this->loaded_html_min
+			||
+			$this->loaded_minify
+		);
 
 	}
 
@@ -83,7 +94,9 @@ class WPSCMin {
 		/**
 		 * set minifier instance
 		 */
-		if ( self::instance()->loaded_minify ){
+		if ( self::instance()->loaded_html_min ){
+			self::instance()->minifier = new WPSCMin\Minifier\HtmlMin();
+		}else if ( self::instance()->loaded_minify ){
 			self::instance()->minifier = new WPSCMin\Minifier\Minify();
 		}
 
