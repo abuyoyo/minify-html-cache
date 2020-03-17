@@ -74,7 +74,7 @@ class WPSCMin {
 	private static $instance;
 
 	/**
-	 * Will run once only, since private and called only by getInstance()
+	 * Will run once only, since private and called only by instance()
 	 */
 	private function __construct() {
 
@@ -92,6 +92,8 @@ class WPSCMin {
 			$this->minify_path = dirname(__FILE__);
 		}
 
+		$this->minify_path .= '/min/lib';
+
 		/**
 		 * Set location of WP Super Cache config file wp-cache-config.php from global var
 		 */
@@ -100,22 +102,22 @@ class WPSCMin {
 	}
 
 	/**
-	 * getInstance
+	 * instance
 	 * 
 	 * @return object instance of WPSCMin
 	 */
-	public static function getInstance() {
+	public static function instance() {
 		if ( empty( self::$instance ) )
 			self::$instance = new self();
 		return self::$instance;
 	}
 
-	public static function skipKnownUser() {
-		self::getInstance()->skipping_known_user = TRUE;
+	public static function skip_known_user() {
+		self::instance()->skipping_known_user = TRUE;
 	}
 
 	/**
-	 * minifyPage
+	 * minify_page
 	 * 
 	 * Given string $html, returns minified version.
 	 * Preserves HTML comments appended by WP Super Cache
@@ -123,23 +125,9 @@ class WPSCMin {
 	 * @param String $html 
 	 * @return String $html - minified HTML
 	 */
-	public static function minifyPage( $html ) {
-/*
-		For versions of WP Super Cache 0.9.9.5 and earlier, uncomment the code
-		section below, and comment out (or delete) the alternate code section
-		for versions 0.9.9.6+.
-*/
-		// $parts = preg_split('/\s*(<\!-- Dynamic page generated in [^->]+-->)\s*/', $html, 2, PREG_SPLIT_DELIM_CAPTURE);
-		// self::getInstance()->minify($parts[0]);
-		// return implode("\n", $parts);
-/* 
-		This is the simpler, regex hack-free version for WP Super Cache 0.9.9.6+.
-*/
-		self::getInstance()->minify( $html );
+	public static function minify_page( $html ) {
+		self::instance()->minify( $html );
 		return $html;
-/*
-		End alternate versions
-*/
 	}
 
 
@@ -160,13 +148,13 @@ class WPSCMin {
 		 * (i.e. by another plugin or user mod, or if WordPress were to use it)
 		 */
 		if ( ! class_exists( 'Minify_HTML' ) ) {
-			require_once $this->minify_path . '/min/lib/Minify/HTML.php';
+			require_once $this->minify_path . '/Minify/HTML.php';
 			// Add min/lib to include_path for CSS.php to be able to find components
-			ini_set( 'include_path', ini_get('include_path') . PATH_SEPARATOR . $this->minify_path . '/min/lib' );
-			require_once $this->minify_path . '/min/lib/Minify/CSS.php';
-			require_once $this->minify_path . '/min/lib/Minify/CSS/Compressor.php';
-			require_once $this->minify_path . '/min/lib/Minify/CommentPreserver.php';
-			require_once $this->minify_path . '/min/lib/JSMinPlus.php';
+			ini_set( 'include_path', ini_get('include_path') . PATH_SEPARATOR . $this->minify_path );
+			require_once $this->minify_path . '/Minify/CSS.php';
+			require_once $this->minify_path . '/Minify/CSS/Compressor.php';
+			require_once $this->minify_path . '/Minify/CommentPreserver.php';
+			require_once $this->minify_path . '/JSMinPlus.php';
 		}
 
 		/**
@@ -176,7 +164,7 @@ class WPSCMin {
 		$this->escapedStrings = array();
 		$html = preg_replace_callback(
 			'#<\!--\s*\[minify_skip\]\s*-->((?:[^<]|<(?!<\!--\s*\[/minify_skip\]))+?)<\!--\s*\[/minify_skip\]\s*-->#i',
-			[ $this, 'strCapture' ],
+			[ $this, 'minify_skip_capture' ],
 			$html
 		);
 
@@ -196,7 +184,7 @@ class WPSCMin {
 		);
 	}
 
-	public function updateOption( $value ){
+	public function update_option( $value ){
 		$enabled = (bool) $value;
 		if ( $enabled != $this->enabled ){
 			$this->enabled = $enabled;
@@ -209,7 +197,7 @@ class WPSCMin {
 		}
 	}
 
-	public function printOptionsForm( $action ) {
+	public function print_options_form( $action ) {
 		$id = 'htmlminify-section';
 		?>
 		<fieldset id="<?php echo $id; ?>" class="options">
@@ -232,12 +220,12 @@ class WPSCMin {
 	}
 
 	/**
-	 * strCapture
+	 * minify_skip_capture
 	 * 
 	 * used as callbak by preg_replace_callback()
 	 * in Minify() to capture [minify-skip] tag
 	 */
-	private function strCapture( $matches ) {
+	private function minify_skip_capture( $matches ) {
 		$placeholder = 'X_WPSCMin_escaped_string_' . count( $this->escapedStrings );
 		$this->escapedStrings[$placeholder] = $matches[1];
 		return $placeholder;
@@ -245,7 +233,9 @@ class WPSCMin {
 }
 
 
-/* function WPSCMin_settings
+if ( function_exists('add_cacheaction') ):
+
+/* function wpscmin_settings
  *
  * Inserts an "on/off switch" for HTML Minify into the WP Super Cache
  * configuration screen in WordPress' settings section.
@@ -257,19 +247,19 @@ class WPSCMin {
  * http://ocaoimh.ie/wp-super-cache-developers/
  */
 
-function WPSCMin_settings() {
+function wpscmin_settings() {
 	// Update option if it has been changed
 	if (isset($_POST[WPSCMin::$config_varname]))
-		WPSCMin::getInstance()->updateOption($_POST[WPSCMin::$config_varname]);
+		WPSCMin::instance()->update_option($_POST[WPSCMin::$config_varname]);
 
 	// Print HTML Minify configuration section
-	WPSCMin::getInstance()->printOptionsForm($_SERVER['REQUEST_URI']);
+	WPSCMin::instance()->print_options_form($_SERVER['REQUEST_URI']);
 }
 
-add_cacheaction('cache_admin_page', 'WPSCMin_settings');
+add_cacheaction('cache_admin_page', 'wpscmin_settings');
 
 
-/* function WPSCMin_minify
+/* function wpscmin_minify
  *
  * Adds filter to minify the WP Super Cache buffer when wpsupercache_buffer
  * filters are executed in wp-cache-phase2.php.
@@ -278,14 +268,14 @@ add_cacheaction('cache_admin_page', 'WPSCMin_settings');
  * add_cacheaction() plugin hook system of WP Super Cache.
  */
 
-function WPSCMin_minify() {
-	add_filter('wpsupercache_buffer', array('WPSCMin', 'minifyPage'));
+function wpscmin_minify() {
+	add_filter('wpsupercache_buffer', array('WPSCMin', 'minify_page'));
 }
 
-add_cacheaction('add_cacheaction', 'WPSCMin_minify');
+add_cacheaction('add_cacheaction', 'wpscmin_minify');
 
 
-/* function WPSCMin_check_known_user
+/* function wpscmin_check_known_user
  *
  * Checks filtered $_COOKIE contents and global var $wp_cache_not_logged_in 
  * to skip minification of dynamic page contents for a detected known user. 
@@ -295,15 +285,15 @@ add_cacheaction('add_cacheaction', 'WPSCMin_minify');
  * add_cacheaction() plugin hook system of WP Super Cache.
  */
 
-function WPSCMin_check_known_user($string) {
+function wpscmin_check_known_user($string) {
 	if ($GLOBALS['wp_cache_not_logged_in'] and $string != '') {
 		// Detected known user per logic in wp-cache-phase2.php 
 		// (see line 378 in WP Super Cache 0.9.9.8)
-		WPSCMin::skipKnownUser();
+		WPSCMin::skip_known_user();
 	}
 	return $string;
 }
 
-add_cacheaction('wp_cache_get_cookies_values', 'WPSCMin_check_known_user');
+add_cacheaction('wp_cache_get_cookies_values', 'wpscmin_check_known_user');
 
-?>
+endif;
