@@ -4,6 +4,8 @@
 	"description": "HTML minifier add-on to WP Super Cache and WP-Optimize cache plugins.",
 	"license": "GPL-2",
 	"require": {
+		"abuyoyo/plugincore": "~0.10",
+
 		"mrclay/minify": "~2.3"
 	}
 }
