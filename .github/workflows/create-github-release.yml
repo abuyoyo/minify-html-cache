@@ -1,0 +1,38 @@
+# Create Github Release
+# v1.0
+# Create Github release on tag push
+# - Use tag name as release title
+# - Use CHANGELOG.md log entry as body
+
+on:
+  push:
+    # Sequence of patterns matched against refs/tags
+    tags:
+      - '*' # Match any tag
+
+name: Create Release
+
+jobs:
+  build:
+    name: Create Release
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+      - name: Get Changelog Entry
+        id: changelog_reader
+        uses: mindsers/changelog-reader-action@v1.1.0
+        with:
+          version: ${{ github.ref }}
+          path: ./CHANGELOG.md
+      - name: Create Release
+        id: create_release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: ${{ github.ref }}
+          release_name: ${{ github.ref }}
+          body: ${{ steps.changelog_reader.outputs.log_entry }} # This pulls from the GET CHANGELOG ENTRY step above, referencing it's ID to get its outputs object, which include a `log_entry`. See this blog post for more info: https://jasonet.co/posts/new-features-of-github-actions/#passing-data-to-future-steps
+          draft: false
+          prerelease: false
