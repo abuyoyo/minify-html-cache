@@ -7,6 +7,7 @@
 		"abuyoyo/plugincore": "~0.10",
 
 		"mrclay/minify": "~2.3",
-		"voku/html-min": "~4.2"
+		"voku/html-min": "~4.2",
+		"wyrihaximus/html-compress": "~4.0"
 	}
 }

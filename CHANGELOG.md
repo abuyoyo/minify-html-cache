@@ -5,6 +5,12 @@ All notable changes to Minify HTML Cache plugin and original [WSCMin](http://lyn
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
+## [1.1](https://github.com/abuyoyo/minify-html-cache/releases/tag/1.1/)
+Release Date: Jun 8, 2020
+
+* Add `WyriHaximus\HtmlCompress` minifier library and use as default.
+* Requires PHP >=7.4
+
 ## [1.0](https://github.com/abuyoyo/minify-html-cache/releases/tag/1.0/) - Initial Release
 Release Date: Apr 20, 2020
 
